@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  minecraft:
+    image: itzg/minecraft-server
+    environment:
+      SERVER_NAME: "Voobshe poebat"
+      EULA: "true"
+      DIFFICULTY: "normal"
+      ONLINE_MODE: "false"
+      EXEC_DIRECTLY: "true"
+      TYPE: AUTO_CURSEFORGE
+      CF_PAGE_URL: https://www.curseforge.com/minecraft/modpacks/create-flavored
+      INIT_MEMORY: 2G
+      MAX_MEMORY: 10G
+      ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
+
+    ports:
+      - "25565:25565"
+    volumes:
+      - data:/data
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+volumes:
+  data: {}
