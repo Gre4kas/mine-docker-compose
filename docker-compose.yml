@@ -2,15 +2,17 @@ version: "3.8"
 
 services:
   minecraft:
-    image: itzg/minecraft-server
+    image: itzg/minecraft-server:java8-multiarch
     environment:
       SERVER_NAME: "Voobshe poebat"
+      TYPE: FORGE
+      VERSION: 1.16.5
+      GENERIC_PACK: https://mediafilez.forgecdn.net/files/3567/576/Above+and+Beyond-1.3-Server.zip
       EULA: "true"
       DIFFICULTY: "normal"
       ONLINE_MODE: "false"
       EXEC_DIRECTLY: "true"
-      INIT_MEMORY: 2G
-      MAX_MEMORY: 3G
+      MEMORY: 8G
       ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
 
     ports:
@@ -20,5 +22,43 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+  monitor:
+    image: itzg/mc-monitor
+    command: export-for-prometheus
+    environment:
+      EXPORT_SERVERS: minecraft
+      DEBUG: "true"
+    depends_on:
+      - minecraft
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor-arm@sha256:5f5674f8480b87b7535f711d017099544460471f2a142b556ac939ec9becdfaa
+    ports:
+      - "8180:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-tsdb:/prometheus
+    depends_on:
+      - monitor
+  grafana:
+    image: grafana/grafana-oss:${GRAFANA_VERSION:-8.3.3}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-lib:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./dashboards:/etc/grafana/dashboards
+    depends_on:
+      - prometheus
+
+
 volumes:
   data: {}
+  prometheus-tsdb: {}
+  grafana-lib: {}
