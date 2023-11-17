@@ -5,22 +5,40 @@ services:
   minecraft:
     image: itzg/minecraft-server
     environment:
+      # Specifies the Minecraft server version
       VERSION: 1.19.4
+
+      # Indicates the server type
       TYPE: "PAPER"
+
+      # Sets the server name
       SERVER_NAME: "Nansy"
+
+      # By default the value should always be TRUE
       EULA: "true"
-      ONLINE_MODE: "false"
+
+      # server setting that configures whether or not players 
+      ONLINE_MODE: "true"
+
+      # If you would like to docker attach to the Minecraft server console with color and interactive capabilities, then add
       EXEC_DIRECTLY: "true"
+      # Allocates GB of RAM to the server
       MEMORY: 4G
+      # Allows server to announce when a player gets an achievement.
       ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
+      
+      # The image a server icon
       ICON: "https://indianmemetemplates.com/wp-content/uploads/say-my-name.jpg"
+      
+      # The difficulty level (default: easy) 
       DIFFICULTY: "hard"
+      
+      # The message of the day, shown below each server entry in the client UI
       MOTD: "§cWelcome to §r §nServer"
     ports:
       - "25565:25565"
     volumes:
       - data:/data
-      - ./plugins:/data/plugins
     stdin_open: true
     tty: true
     restart: unless-stopped
@@ -46,7 +64,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_manifest/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-tsdb:/prometheus
     depends_on:
       - monitor
