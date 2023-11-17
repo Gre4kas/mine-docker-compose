@@ -28,7 +28,7 @@ cd mine-docker-compose
 ```sh
 docker-compose up -d
 ```
-The -d flag tells Docker Compose to run the containers in detached mode, meaning they will continue running in the background even after you close the terminal window.
+The `-d` flag tells Docker Compose to run the containers in detached mode, meaning they will continue running in the background even after you close the terminal window.
 
 #### Monitor the Server:
 
