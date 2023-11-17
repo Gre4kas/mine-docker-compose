@@ -18,7 +18,7 @@ git clone https://github.com/Gre4kas/mine-docker-compose.git
 
 #### Navigate to the Project Directory:
 
-    Change your directory to the cloned project directory using the following command:
+Change your directory to the cloned project directory using the following command:
 
 ```sh
 cd mine-docker-compose
