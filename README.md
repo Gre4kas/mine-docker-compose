@@ -26,7 +26,7 @@ cd mine-docker-compose
 #### Start the Minecraft Server:
 
 ```sh
-docker-compose up -d
+docker compose up -d
 ```
 The `-d` flag tells Docker Compose to run the containers in detached mode, meaning they will continue running in the background even after you close the terminal window.
 
