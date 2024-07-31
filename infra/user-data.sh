@@ -59,11 +59,20 @@ EOF
 
 # Function to clone the Git repository and start Docker Compose
 deploy_docker_compose() {
-    if ! git clone "$GIT_REPO_URL"; then
-        printf "Error: Failed to clone the Git repository.\n" >&2
-        return 1
+    if [[ -d "$CLONE_DIR" ]]; then
+        printf "Directory %s already exists. Updating the repository...\n" "$CLONE_DIR"
+        cd "$CLONE_DIR" || return 1
+        if ! git pull; then
+            printf "Error: Failed to update the Git repository.\n" >&2
+            return 1
+        fi
+    else
+        if ! git clone "$GIT_REPO_URL" "$CLONE_DIR"; then
+            printf "Error: Failed to clone the Git repository.\n" >&2
+            return 1
+        fi
+        cd "$CLONE_DIR" || return 1
     fi
-    cd "$CLONE_DIR" || return 1
     docker compose up -d
 }
 
