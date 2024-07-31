@@ -1,13 +1,8 @@
-version: "3.8"
-
 services:
 # Minecraft server
   minecraft:
     image: itzg/minecraft-server
     environment:
-      # Specifies the Minecraft server version
-      VERSION: 1.19.4
-
       # Indicates the server type
       TYPE: "PAPER"
 
@@ -23,7 +18,7 @@ services:
       # If you would like to docker attach to the Minecraft server console with color and interactive capabilities, then add
       EXEC_DIRECTLY: "true"
       # Allocates GB of RAM to the server
-      MEMORY: 4G
+      MEMORY: 1G
       # Allows server to announce when a player gets an achievement.
       ANNOUNCE_PLAYER_ACHIEVEMENTS: "true"
       
@@ -53,7 +48,7 @@ services:
     depends_on:
       - minecraft
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    image: gcr.io/cadvisor/cadvisor:v0.50.0
     ports:
       - "8180:8080"
     volumes:
@@ -64,7 +59,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - prometheus_manifest/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_manifest/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-tsdb:/prometheus
     depends_on:
       - monitor
