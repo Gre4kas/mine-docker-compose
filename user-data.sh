@@ -1,32 +1,80 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-# Add Docker's official GPG key:
-sudo apt-get update -y
-sudo apt-get install ca-certificates curl -y
-sudo install -m 0755 -d /etc/apt/keyrings 
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+# Global variables
+APT_KEYRING_DIR="/etc/apt/keyrings"
+DOCKER_KEY_FILE="${APT_KEYRING_DIR}/docker.asc"
+DOCKER_REPO_LIST="/etc/apt/sources.list.d/docker.list"
+DOCKER_REPO_URL="https://download.docker.com/linux/ubuntu"
+GIT_REPO_URL="https://github.com/Gre4kas/mine-docker-compose.git"
+CLONE_DIR="mine-docker-compose"
 
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update -y
+# Function to install necessary packages
+install_packages() {
+    sudo apt-get update -y
+    sudo apt-get install -y ca-certificates curl gnupg
+}
 
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+# Function to add Docker's GPG key
+add_docker_gpg_key() {
+    sudo install -m 0755 -d "$APT_KEYRING_DIR"
+    if ! sudo curl -fsSL "$DOCKER_REPO_URL/gpg" -o "$DOCKER_KEY_FILE"; then
+        printf "Error: Failed to download Docker's GPG key.\n" >&2
+        return 1
+    fi
+    sudo chmod a+r "$DOCKER_KEY_FILE"
+}
 
-sudo groupadd docker
+# Function to add Docker's repository
+add_docker_repo() {
+    local codename; codename=$(source /etc/os-release && printf "%s" "$VERSION_CODENAME")
+    if [[ -z "$codename" ]]; then
+        printf "Error: Failed to determine Ubuntu codename.\n" >&2
+        return 1
+    fi
+    
+    printf "deb [arch=$(dpkg --print-architecture) signed-by=%s] %s %s stable\n" \
+        "$DOCKER_KEY_FILE" "$DOCKER_REPO_URL" "$codename" | \
+        sudo tee "$DOCKER_REPO_LIST" > /dev/null
 
-sudo usermod -aG docker $USER
+    sudo apt-get update -y
+}
 
-newgrp docker
+# Function to install Docker packages
+install_docker() {
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+}
 
-git clone https://github.com/Gre4kas/mine-docker-compose.git
+# Function to configure Docker group and user permissions
+configure_docker_permissions() {
+    if ! getent group docker > /dev/null; then
+        sudo groupadd docker
+    fi
+    sudo usermod -aG docker "$USER"
+}
 
-cd mine-docker-compose
+# Function to clone the Git repository and start Docker Compose
+deploy_docker_compose() {
+    if ! git clone "$GIT_REPO_URL"; then
+        printf "Error: Failed to clone the Git repository.\n" >&2
+        return 1
+    fi
+    cd "$CLONE_DIR" || return 1
+    docker compose up -d
+}
 
-docker compose up -d
+main() {
+    install_packages
+    add_docker_gpg_key
+    add_docker_repo
+    install_docker
+    configure_docker_permissions
+    
+    printf "Docker installation and configuration complete.\n"
+    printf "You need to log out and log back in for the group changes to take effect.\n"
 
+    deploy_docker_compose
+}
+
+main "$@"
