@@ -52,18 +52,9 @@ configure_docker_permissions() {
         sudo groupadd docker
     fi
     sudo usermod -aG docker "$USER"
-}
-
-# Function to check Docker permissions and advise user
-check_docker_permissions() {
-    if ! groups "$USER" | grep -q '\bdocker\b'; then
-        printf "Warning: User '%s' is not in the 'docker' group. You need to log out and log back in for the changes to take effect.\n" "$USER" >&2
-        return 1
-    fi
-    if ! docker info > /dev/null 2>&1; then
-        printf "Error: Unable to access Docker. Please ensure you have logged out and back in after adding your user to the 'docker' group.\n" >&2
-        return 1
-    fi
+    newgrp docker << EOF
+$(deploy_docker_compose)
+EOF
 }
 
 # Function to clone the Git repository and start Docker Compose
@@ -84,13 +75,6 @@ main() {
     configure_docker_permissions
     
     printf "Docker installation and configuration complete.\n"
-    printf "You need to log out and log back in for the group changes to take effect.\n"
-
-    if ! check_docker_permissions; then
-        exit 1
-    fi
-
-    deploy_docker_compose
 }
 
 main "$@"
