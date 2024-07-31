@@ -7,8 +7,6 @@ APT_KEYRING_DIR="/etc/apt/keyrings"
 DOCKER_KEY_FILE="${APT_KEYRING_DIR}/docker.asc"
 DOCKER_REPO_LIST="/etc/apt/sources.list.d/docker.list"
 DOCKER_REPO_URL="https://download.docker.com/linux/ubuntu"
-GIT_REPO_URL="https://github.com/Gre4kas/mine-docker-compose.git"
-CLONE_DIR="mine-docker-compose"
 
 # Function to install necessary packages
 install_packages() {
@@ -52,28 +50,6 @@ configure_docker_permissions() {
         sudo groupadd docker
     fi
     sudo usermod -aG docker "$USER"
-    newgrp docker << EOF
-$(deploy_docker_compose)
-EOF
-}
-
-# Function to clone the Git repository and start Docker Compose
-deploy_docker_compose() {
-    if [[ -d "$CLONE_DIR" ]]; then
-        printf "Directory %s already exists. Updating the repository...\n" "$CLONE_DIR"
-        cd "$CLONE_DIR" || return 1
-        if ! git pull; then
-            printf "Error: Failed to update the Git repository.\n" >&2
-            return 1
-        fi
-    else
-        if ! git clone "$GIT_REPO_URL" "$CLONE_DIR"; then
-            printf "Error: Failed to clone the Git repository.\n" >&2
-            return 1
-        fi
-        cd "$CLONE_DIR" || return 1
-    fi
-    docker compose up -d
 }
 
 main() {
@@ -82,8 +58,9 @@ main() {
     add_docker_repo
     install_docker
     configure_docker_permissions
-    
+
     printf "Docker installation and configuration complete.\n"
+    printf "Please log out and log back in for the group changes to take effect.\n"
 }
 
 main "$@"
