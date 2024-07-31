@@ -35,6 +35,12 @@ resource "aws_security_group" "minecraft_sg" {
     protocol = "tcp"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+  ingress {
+    from_port = 3000
+    to_port = 3000
+    protocol = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
   egress {
     from_port       = 0
     to_port         = 0
@@ -54,9 +60,9 @@ resource "aws_key_pair" "minecraft_key" {
 
 resource "aws_instance" "minecraft_instance" {
     ami = "ami-0a0e5d9c7acc336f1"
-    instance_type = "t2.micro"
+    instance_type = "t3.micro"
 
-    user_data = file("../user-data.sh")
+    user_data = file("user-data.sh")
 
     subnet_id = aws_subnet.minecraft_subnet.id
     vpc_security_group_ids = [ aws_security_group.minecraft_sg.id ]
