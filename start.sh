@@ -9,7 +9,7 @@ CLONE_DIR="mine-docker-compose"
 start_docker_compose() {
     if [[ -d "$CLONE_DIR" ]]; then
         cd "$CLONE_DIR" || { printf "Error: Failed to change directory to %s\n" "$CLONE_DIR" >&2; exit 1; }
-        if ! docker compose up -d; then
+        if ! sudo docker compose up -d; then
             printf "Error: Failed to start Docker Compose.\n" >&2
             exit 1
         fi
