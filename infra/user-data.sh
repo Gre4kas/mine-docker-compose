@@ -81,7 +81,7 @@ main() {
     cd "$CLONE_DIR" || { printf "Error: Directory %s does not exist or cannot be accessed.\n" "$CLONE_DIR" >&2; return 1; }
 
     chmod +x ./start.sh
-    sg docker -c "./start.sh"
+    ./start.sh
 }
 
 main "$@"
