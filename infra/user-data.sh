@@ -83,9 +83,10 @@ main() {
     printf "Docker installation and configuration complete.\n"
     printf "Starting Docker Compose as the 'docker' group...\n"
     
-    sg docker -c "./start_docker_compose.sh"
+    cd "$CLONE_DIR" || { printf "Error: Directory %s does not exist or cannot be accessed.\n" "$CLONE_DIR" >&2; return 1; }
 
-    cd "$CLONE_DIR" || return 1
+    chmod +x ./start.sh
+    sg docker -c "./start.sh"
 }
 
 main "$@"

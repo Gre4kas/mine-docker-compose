@@ -61,7 +61,6 @@ resource "aws_key_pair" "minecraft_key" {
 resource "aws_instance" "minecraft_instance" {
     ami = "ami-0a0e5d9c7acc336f1"
     instance_type = "t3.small"
-
     user_data = file("user-data.sh")
 
     subnet_id = aws_subnet.minecraft_subnet.id
