@@ -59,6 +59,13 @@ configure_docker_permissions() {
     sudo usermod -aG docker "$USER"
 }
 
+# Function to enable and start Docker service, and set proper permissions on the Docker socket
+setup_docker_service() {
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    sudo chown "$USER" /var/run/docker.sock
+}
+
 # Function to clone the Git repository
 clone_repo() {
     echo "Cloning the Git repository..."
@@ -79,6 +86,7 @@ main() {
     add_docker_repo
     install_docker
     configure_docker_permissions
+    setup_docker_service
 
     clone_repo
 
