@@ -12,12 +12,14 @@ CLONE_DIR="mine-docker-compose"
 
 # Function to install necessary packages
 install_packages() {
+    echo "Installing necessary packages..."
     sudo apt-get update -y
     sudo apt-get install -y ca-certificates curl gnupg
 }
 
 # Function to add Docker's GPG key
 add_docker_gpg_key() {
+    echo "Adding Docker's GPG key..."
     sudo install -m 0755 -d "$APT_KEYRING_DIR"
     if ! sudo curl -fsSL "$DOCKER_REPO_URL/gpg" -o "$DOCKER_KEY_FILE"; then
         printf "Error: Failed to download Docker's GPG key.\n" >&2
@@ -28,6 +30,7 @@ add_docker_gpg_key() {
 
 # Function to add Docker's repository
 add_docker_repo() {
+    echo "Adding Docker's repository..."
     local codename; codename=$(source /etc/os-release && printf "%s" "$VERSION_CODENAME")
     if [[ -z "$codename" ]]; then
         printf "Error: Failed to determine Ubuntu codename.\n" >&2
@@ -43,11 +46,13 @@ add_docker_repo() {
 
 # Function to install Docker packages
 install_docker() {
+    echo "Installing Docker packages..."
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
 # Function to configure Docker group and user permissions
 configure_docker_permissions() {
+    echo "Configuring Docker group and user permissions..."
     if ! getent group docker > /dev/null; then
         sudo groupadd docker
     fi
@@ -56,6 +61,7 @@ configure_docker_permissions() {
 
 # Function to clone the Git repository
 clone_repo() {
+    echo "Cloning the Git repository..."
     if [[ -d "$CLONE_DIR" ]]; then
         printf "Directory %s already exists. Skipping clone.\n" "$CLONE_DIR"
         return 0
@@ -66,6 +72,7 @@ clone_repo() {
         return 1
     fi
 }
+
 main() {
     install_packages
     add_docker_gpg_key
