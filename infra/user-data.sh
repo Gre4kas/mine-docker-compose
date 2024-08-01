@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Setting the USER variable manually or using whoami
+USER=$(whoami)
+
 # Global variables
 APT_KEYRING_DIR="/etc/apt/keyrings"
 DOCKER_KEY_FILE="${APT_KEYRING_DIR}/docker.asc"
@@ -12,14 +15,14 @@ CLONE_DIR="mine-docker-compose"
 
 # Function to install necessary packages
 install_packages() {
-    echo "Installing necessary packages..."
+    printf "Installing necessary packages...\n"
     sudo apt-get update -y
     sudo apt-get install -y ca-certificates curl gnupg
 }
 
 # Function to add Docker's GPG key
 add_docker_gpg_key() {
-    echo "Adding Docker's GPG key..."
+    printf "Adding Docker's GPG key...\n"
     sudo install -m 0755 -d "$APT_KEYRING_DIR"
     if ! sudo curl -fsSL "$DOCKER_REPO_URL/gpg" -o "$DOCKER_KEY_FILE"; then
         printf "Error: Failed to download Docker's GPG key.\n" >&2
@@ -30,7 +33,7 @@ add_docker_gpg_key() {
 
 # Function to add Docker's repository
 add_docker_repo() {
-    echo "Adding Docker's repository..."
+    printf "Adding Docker's repository...\n"
     local codename; codename=$(source /etc/os-release && printf "%s" "$VERSION_CODENAME")
     if [[ -z "$codename" ]]; then
         printf "Error: Failed to determine Ubuntu codename.\n" >&2
@@ -46,13 +49,13 @@ add_docker_repo() {
 
 # Function to install Docker packages
 install_docker() {
-    echo "Installing Docker packages..."
+    printf "Installing Docker packages...\n"
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
 # Function to configure Docker group and user permissions
 configure_docker_permissions() {
-    echo "Configuring Docker group and user permissions..."
+    printf "Configuring Docker group and user permissions...\n"
     if ! getent group docker > /dev/null; then
         sudo groupadd docker
     fi
@@ -68,7 +71,7 @@ setup_docker_service() {
 
 # Function to clone the Git repository
 clone_repo() {
-    echo "Cloning the Git repository..."
+    printf "Cloning the Git repository...\n"
     if [[ -d "$CLONE_DIR" ]]; then
         printf "Directory %s already exists. Skipping clone.\n" "$CLONE_DIR"
         return 0
@@ -76,6 +79,25 @@ clone_repo() {
     
     if ! git clone "$GIT_REPO_URL" "$CLONE_DIR"; then
         printf "Error: Failed to clone the Git repository.\n" >&2
+        return 1
+    fi
+}
+
+# Function to start Docker Compose
+start_docker_compose() {
+    local current_dir; current_dir=$(pwd)
+    
+    if [[ "$(basename "$current_dir")" != "$CLONE_DIR" ]]; then
+        if [[ -d "$CLONE_DIR" ]]; then
+            cd "$CLONE_DIR" || { printf "Error: Failed to change directory to %s\n" "$CLONE_DIR" >&2; return 1; }
+        else
+            printf "Error: Directory %s does not exist. Please ensure the repository is cloned.\n" "$CLONE_DIR" >&2
+            return 1
+        fi
+    fi
+
+    if ! sudo docker compose up -d; then
+        printf "Error: Failed to start Docker Compose.\n" >&2
         return 1
     fi
 }
@@ -89,14 +111,9 @@ main() {
     setup_docker_service
 
     clone_repo
+    start_docker_compose
 
-    printf "Docker installation and configuration complete.\n"
-    printf "Starting Docker Compose as the 'docker' group...\n"
-    
-    cd "$CLONE_DIR" || { printf "Error: Directory %s does not exist or cannot be accessed.\n" "$CLONE_DIR" >&2; return 1; }
-
-    chmod +x ./start.sh
-    ./start.sh
+    printf "Docker installation, configuration, and Docker Compose startup complete.\n"
 }
 
 main "$@"
