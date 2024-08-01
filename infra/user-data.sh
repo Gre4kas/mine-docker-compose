@@ -54,23 +54,18 @@ configure_docker_permissions() {
     sudo usermod -aG docker "$USER"
 }
 
-# Function to clone or update the Git repository
-clone_or_update_repo() {
+# Function to clone the Git repository
+clone_repo() {
     if [[ -d "$CLONE_DIR" ]]; then
-        printf "Directory %s already exists. Updating the repository...\n" "$CLONE_DIR"
-        cd "$CLONE_DIR" || return 1
-        if ! git pull; then
-            printf "Error: Failed to update the Git repository.\n" >&2
-            return 1
-        fi
-    else
-        if ! git clone "$GIT_REPO_URL" "$CLONE_DIR"; then
-            printf "Error: Failed to clone the Git repository.\n" >&2
-            return 1
-        fi
+        printf "Directory %s already exists. Skipping clone.\n" "$CLONE_DIR"
+        return 0
+    fi
+    
+    if ! git clone "$GIT_REPO_URL" "$CLONE_DIR"; then
+        printf "Error: Failed to clone the Git repository.\n" >&2
+        return 1
     fi
 }
-
 main() {
     install_packages
     add_docker_gpg_key
@@ -78,7 +73,7 @@ main() {
     install_docker
     configure_docker_permissions
 
-    clone_or_update_repo
+    clone_repo
 
     printf "Docker installation and configuration complete.\n"
     printf "Starting Docker Compose as the 'docker' group...\n"
