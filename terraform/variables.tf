@@ -1,7 +1,19 @@
+# Define variables for providers.tf
+variable "aws_region" {
+  default     = "us-east-1"
+  description = "aws region"
+}
+
 # Define variables for EC2.tf 
 variable "key_name" {
   description = "The name of the key pair"
   default     = "minecraft_key"
+}
+
+variable "prefix" {
+  description = "Prefix for tag"
+  type        = string
+  default     = "minecraft"
 }
 
 variable "public_key_path" {
@@ -29,13 +41,16 @@ variable "availability_zone" {
   default     = "us-east-1a"
 }
 
-variable "tags" {
-  description = "Tags to apply to the instance"
-  type        = map(string)
-  default = {
-    Name = "minecraft_instance"
-  }
+# Networks 
+
+variable "cidr_block" {
+  description = "CIDR block for the network, default is 0.0.0.0/0 (allows all inbound traffic)"
+  type        = string
+  default     = "0.0.0.0/0"
 }
 
-# ------------------------------
-
+variable "cidr_block_subnet" {
+  description = "CIDR block for the subnet, default is 10.0.0.0/24"
+  type        = string
+  default     = "10.0.0.0/24"
+}
